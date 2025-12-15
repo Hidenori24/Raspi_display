@@ -24,6 +24,8 @@ struct ClubData {
 // Application service: translate user parameters to domain launch conditions
 class ShotParameterService {
 public:
+  static constexpr int NUM_CLUBS = 6;
+  
   ShotParameterService();
   
   // Convert application-level parameters to domain launch condition
@@ -31,10 +33,10 @@ public:
   
   // Get club data
   const ClubData& getClubData(int index) const;
-  int getClubCount() const { return 6; }
+  int getClubCount() const { return NUM_CLUBS; }
   
 private:
-  static const ClubData clubs_[6];
+  static const ClubData clubs_[NUM_CLUBS];
 };
 
 } // namespace application

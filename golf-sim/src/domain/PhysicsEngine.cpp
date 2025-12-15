@@ -104,8 +104,8 @@ ShotResult PhysicsEngine::calculateResult() const {
   
   // Carry distance (straight-line distance from start to landing)
   Vec3 displacement = final_state.pos - initial_position_;
-  result.carry_m = std::sqrt(displacement.x * displacement.x + 
-                             displacement.y * displacement.y);
+  // Use Vec3 length calculation for horizontal distance (x-y plane)
+  result.carry_m = Vec3(displacement.x, displacement.y, 0.0).length();
   
   // Total distance (same as carry for now, can add roll later)
   result.total_m = result.carry_m;

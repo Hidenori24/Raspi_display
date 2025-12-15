@@ -35,7 +35,7 @@ domain::LaunchCondition ShotParameterService::createLaunchCondition(const ShotPa
 }
 
 const ClubData& ShotParameterService::getClubData(int index) const {
-  if (index < 0 || index >= 6) {
+  if (index < 0 || index >= NUM_CLUBS) {
     return clubs_[0];
   }
   return clubs_[index];
