@@ -36,6 +36,7 @@ void App::setup() {
   
   // Start in Armed state (ready to shoot)
   state_machine_.transitionToArmed();
+    intro_pending_ = true; // show intro at first armed
   
   // Default shot parameters
   current_params_.club_index = 0;  // Driver
@@ -44,7 +45,19 @@ void App::setup() {
 }
 
 void App::run() {
+  
   while (!WindowShouldClose()) {
+    // Show intro whenever pending (e.g., before each Armed setup)
+    if (intro_pending_) {
+      bool intro = true;
+      while (intro && !WindowShouldClose()) {
+        renderer_->drawIntroScreen(hole_number_, /*par*/4, /*pin_distance*/ static_cast<float>(17.5f));
+        if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER)) {
+          intro = false;
+        }
+      }
+      intro_pending_ = false;
+    }
     double dt = GetFrameTime();
     
     handleInput();
@@ -94,6 +107,7 @@ void App::handleInput() {
       physics_.reset();
       state_machine_.transitionToArmed();
       hole_number_++;
+      intro_pending_ = true; // show intro before next shot
       
       // Reset parameters
       current_params_.power = 0.7f;

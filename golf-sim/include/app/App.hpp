@@ -48,5 +48,6 @@ private:
   
   // UI state (presentation concern)
   int hole_number_ = 1;
+  bool intro_pending_ = true;  // show intro before setup/armed
   bool window_open_ = true;
 };
