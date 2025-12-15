@@ -9,3 +9,4 @@ cmake-build-release/
 *.dylib
 golf-sim
 .DS_Store
+golf-sim/_codeql*

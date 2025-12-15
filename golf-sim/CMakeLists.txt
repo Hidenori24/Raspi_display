@@ -25,14 +25,45 @@ endif()
 # Include directories
 include_directories(include)
 
-# Main executable
-add_executable(golf-sim
-  src/main.cpp
+# ===== DOMAIN LAYER (Pure C++, no external dependencies) =====
+add_library(domain STATIC
+  src/domain/Vec3.cpp
+  src/domain/Trajectory.cpp
+  src/domain/PhysicsEngine.cpp
+  src/domain/GameState.cpp
+  src/domain/GameStateMachine.cpp
+)
+target_include_directories(domain PUBLIC include)
+# Domain has NO dependencies (pure C++)
+
+# ===== APPLICATION LAYER (depends on domain only) =====
+add_library(application STATIC
+  src/application/ShotParameterService.cpp
+  src/application/UseCases.cpp
+)
+target_include_directories(application PUBLIC include)
+target_link_libraries(application PUBLIC domain)
+
+# ===== INFRASTRUCTURE LAYER (depends on application, domain) =====
+add_library(infrastructure STATIC
+  src/infrastructure/MockSensorProvider.cpp
+)
+target_include_directories(infrastructure PUBLIC include)
+target_link_libraries(infrastructure PUBLIC application domain)
+
+# ===== PRESENTATION LAYER (depends on all, includes raylib) =====
+add_library(presentation STATIC
   src/app/App.cpp
   src/render/Renderer.cpp
 )
+target_include_directories(presentation PUBLIC include)
+target_link_libraries(presentation PUBLIC application infrastructure domain raylib)
 
-target_link_libraries(golf-sim raylib)
+# ===== MAIN EXECUTABLE (composition root) =====
+add_executable(golf-sim
+  src/main.cpp
+)
+target_link_libraries(golf-sim presentation application infrastructure domain raylib)
 
 # Optional: compile flags
 if(APPLE)
@@ -41,3 +72,10 @@ endif()
 
 # Release optimization
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
+# Add tests directory if it exists
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+  enable_testing()
+  add_subdirectory(tests)
+endif()
+
