@@ -1,102 +1,175 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="1400" height="820" viewBox="0 0 1400 820" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Define styles -->
   <defs>
     <style>
-      .box { fill: #ffffff; stroke: #111111; stroke-width: 2; rx: 14; ry: 14; }
-      .title { font-family: Arial, Helvetica, sans-serif; font-size: 20px; font-weight: 700; fill: #111; }
-      .text { font-family: Arial, Helvetica, sans-serif; font-size: 16px; fill: #111; }
-      .small { font-family: Arial, Helvetica, sans-serif; font-size: 14px; fill: #111; }
-      .muted { fill: #333; }
-      .arrow { stroke: #111; stroke-width: 2.5; fill: none; marker-end: url(#mArrow); }
-      .dash { stroke-dasharray: 7 6; }
+      .box { fill: #e8f4f8; stroke: #2c3e50; stroke-width: 2; }
+      .input-box { fill: #fff4e6; stroke: #d97706; stroke-width: 2; }
+      .process-box { fill: #e0e7ff; stroke: #4f46e5; stroke-width: 2; }
+      .output-box { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
+      .arrow { stroke: #2c3e50; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .label { font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold; }
+      .sublabel { font-family: 'Courier New', monospace; font-size: 12px; }
+      .title { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; }
     </style>
-    <marker id="mArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-      <path d="M0,0 L12,6 L0,12 z" fill="#111"/>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#2c3e50" />
     </marker>
   </defs>
 
-  <!-- Header -->
-  <text x="40" y="48" class="title">Raspberry Pi 5 Golf Simulator (Prototype) — Recommended Architecture</text>
-  <text x="40" y="76" class="small muted">Core: C++ (raylib/Eigen). Testable by design: Mock / Record-Replay / Deterministic Simulation.</text>
+  <!-- Title -->
+  <text x="600" y="30" text-anchor="middle" class="title">Raspberry Pi 5 Golf Simulator - System Architecture</text>
 
-  <!-- Left: Sensor sources -->
-  <rect x="40" y="120" width="360" height="170" class="box"/>
-  <text x="60" y="155" class="text" font-weight="700">Sensor Sources</text>
-  <text x="60" y="185" class="small">• Real Sensor (IMU, camera, etc.)</text>
-  <text x="60" y="210" class="small">• Mock Sensor (script / random)</text>
-  <text x="60" y="235" class="small">• Record/Replay (CSV/JSON traces)</text>
-  <text x="60" y="260" class="small muted">Goal: identical downstream behavior</text>
+  <!-- ============== INPUT LAYER (Left) ============== -->
+  <!-- Sensor Sources -->
+  <rect x="20" y="80" width="140" height="100" class="input-box" rx="5"/>
+  <text x="90" y="105" text-anchor="middle" class="label">Sensor Sources</text>
+  <text x="90" y="130" text-anchor="middle" class="sublabel">Real / Mock</text>
+  <text x="90" y="150" text-anchor="middle" class="sublabel">Replay</text>
 
-  <!-- Sensor Adapter -->
-  <rect x="40" y="320" width="360" height="160" class="box"/>
-  <text x="60" y="355" class="text" font-weight="700">Input Adapter Layer</text>
-  <text x="60" y="385" class="small">Interface: ISensorProvider</text>
-  <text x="60" y="410" class="small">• Calibration / filtering</text>
-  <text x="60" y="435" class="small">• Timestamping / normalization</text>
+  <!-- ISensorProvider Interface -->
+  <rect x="20" y="220" width="140" height="80" class="box" rx="5"/>
+  <text x="90" y="240" text-anchor="middle" class="label">ISensorProvider</text>
+  <text x="90" y="265" text-anchor="middle" class="sublabel">poll(SensorFrame)</text>
 
-  <!-- Event bus -->
-  <rect x="440" y="220" width="300" height="180" class="box"/>
-  <text x="460" y="255" class="text" font-weight="700">Event Bus</text>
-  <text x="460" y="285" class="small">Lock-free queue / ring buffer</text>
-  <text x="460" y="310" class="small">Events: SwingStart, Impact, Pose, ...</text>
-  <text x="460" y="335" class="small muted">Decouples input timing from render loop</text>
+  <!-- ============== PROCESSING LAYER (Center-Left) ============== -->
+  <!-- Input Adapter -->
+  <rect x="200" y="80" width="140" height="100" class="process-box" rx="5"/>
+  <text x="270" y="105" text-anchor="middle" class="label">Input Adapter</text>
+  <text x="270" y="130" text-anchor="middle" class="sublabel">Normalize</text>
+  <text x="270" y="150" text-anchor="middle" class="sublabel">Filter / Detect</text>
 
-  <!-- Core App -->
-  <rect x="780" y="140" width="580" height="520" class="box"/>
-  <text x="805" y="175" class="text" font-weight="700">Core Application (single process)</text>
+  <!-- EventQueue -->
+  <rect x="200" y="220" width="140" height="80" class="process-box" rx="5"/>
+  <text x="270" y="240" text-anchor="middle" class="label">EventQueue</text>
+  <text x="270" y="265" text-anchor="middle" class="sublabel">SPSC RingBuffer</text>
 
-  <!-- Sub-boxes inside core -->
-  <rect x="810" y="205" width="250" height="160" class="box"/>
-  <text x="830" y="240" class="text" font-weight="700">Game State</text>
-  <text x="830" y="270" class="small">Finite State Machine</text>
-  <text x="830" y="295" class="small">Practice / Round / Results</text>
-  <text x="830" y="320" class="small muted">Consumes events → commands</text>
+  <!-- ============== CORE LOGIC LAYER (Center-Right) ============== -->
+  <!-- GameStateMachine -->
+  <rect x="400" y="80" width="140" height="100" class="process-box" rx="5"/>
+  <text x="470" y="105" text-anchor="middle" class="label">GameState</text>
+  <text x="470" y="130" text-anchor="middle" class="sublabel">Machine (FSM)</text>
+  <text x="470" y="150" text-anchor="middle" class="sublabel">Idle/Armed/InFlight</text>
 
-  <rect x="1090" y="205" width="245" height="160" class="box"/>
-  <text x="1110" y="240" class="text" font-weight="700">Physics Engine</text>
-  <text x="1110" y="270" class="small">Deterministic timestep</text>
-  <text x="1110" y="295" class="small">Ballistics / wind / spin (simplified)</text>
-  <text x="1110" y="320" class="small muted">Output: BallState trajectory</text>
+  <!-- Physics Engine -->
+  <rect x="400" y="220" width="140" height="100" class="process-box" rx="5"/>
+  <text x="470" y="245" text-anchor="middle" class="label">Physics Engine</text>
+  <text x="470" y="270" text-anchor="middle" class="sublabel">Fixed Timestep</text>
+  <text x="470" y="290" text-anchor="middle" class="sublabel">(Deterministic)</text>
 
-  <rect x="810" y="395" width="525" height="170" class="box"/>
-  <text x="830" y="430" class="text" font-weight="700">Renderer / UI</text>
-  <text x="830" y="460" class="small">raylib (2D / pseudo-3D)</text>
-  <text x="830" y="485" class="small">HUD: carry, total, dispersion, club</text>
-  <text x="830" y="510" class="small muted">Runs at 60 FPS, reads current states</text>
+  <!-- ============== OUTPUT LAYER (Right) ============== -->
+  <!-- Renderer/UI -->
+  <rect x="600" y="80" width="140" height="100" class="output-box" rx="5"/>
+  <text x="670" y="105" text-anchor="middle" class="label">Renderer</text>
+  <text x="670" y="130" text-anchor="middle" class="sublabel">2D Top View</text>
+  <text x="670" y="150" text-anchor="middle" class="sublabel">HUD (raylib)</text>
 
-  <rect x="810" y="585" width="525" height="60" class="box"/>
-  <text x="830" y="622" class="small"><tspan font-weight="700">Platform:</tspan> Raspberry Pi 5 + DRM/KMS (or X11) + OpenGL ES</text>
+  <!-- Display/HDMI -->
+  <rect x="600" y="220" width="140" height="80" class="output-box" rx="5"/>
+  <text x="670" y="245" text-anchor="middle" class="label">Display</text>
+  <text x="670" y="270" text-anchor="middle" class="sublabel">HDMI Output</text>
 
-  <!-- Side services -->
-  <rect x="440" y="420" width="300" height="180" class="box"/>
-  <text x="460" y="455" class="text" font-weight="700">Support Services</text>
-  <text x="460" y="485" class="small">• Config/Profile (JSON)</text>
-  <text x="460" y="510" class="small">• Logging (CSV) / Telemetry</text>
-  <text x="460" y="535" class="small">• Debug overlay / metrics</text>
-  <text x="460" y="560" class="small muted">Optional: Python analysis offline</text>
+  <!-- Logger -->
+  <rect x="780" y="220" width="140" height="80" class="box" rx="5"/>
+  <text x="850" y="245" text-anchor="middle" class="label">Logger</text>
+  <text x="850" y="270" text-anchor="middle" class="sublabel">CSV/JSON Events</text>
 
-  <!-- Arrows -->
-  <path d="M220 290 L220 320" class="arrow"/>
-  <path d="M400 400 L440 320" class="arrow"/>
-  <path d="M740 310 L780 285" class="arrow"/>
+  <!-- ============== DETAILED COMPONENTS (Bottom) ============== -->
+  <!-- Event Structure -->
+  <rect x="20" y="380" width="180" height="120" class="box" rx="5"/>
+  <text x="110" y="400" text-anchor="middle" class="label">Event (Internal)</text>
+  <text x="110" y="425" text-anchor="middle" class="sublabel">EventType</text>
+  <text x="110" y="445" text-anchor="middle" class="sublabel">t_sec</text>
+  <text x="110" y="465" text-anchor="middle" class="sublabel">SensorFrame</text>
 
-  <!-- Internal arrows -->
-  <path d="M930 365 L930 395" class="arrow"/>
-  <path d="M1212 365 L1212 395" class="arrow"/>
-  <path d="M1060 285 L1090 285" class="arrow dash"/>
-  <text x="1010" y="275" class="small muted">commands</text>
+  <!-- BallState Structure -->
+  <rect x="220" y="380" width="180" height="120" class="box" rx="5"/>
+  <text x="310" y="400" text-anchor="middle" class="label">BallState</text>
+  <text x="310" y="425" text-anchor="middle" class="sublabel">pos (Vec3)</text>
+  <text x="310" y="445" text-anchor="middle" class="sublabel">vel (Vec3)</text>
+  <text x="310" y="465" text-anchor="middle" class="sublabel">spin / in_flight</text>
 
-  <!-- Support arrows -->
-  <path d="M740 510 L780 480" class="arrow"/>
-  <path d="M590 420 L590 400" class="arrow dash"/>
-  <text x="604" y="412" class="small muted">config/log</text>
+  <!-- ShotResult Structure -->
+  <rect x="420" y="380" width="180" height="120" class="box" rx="5"/>
+  <text x="510" y="400" text-anchor="middle" class="label">ShotResult</text>
+  <text x="510" y="425" text-anchor="middle" class="sublabel">carry_m</text>
+  <text x="510" y="445" text-anchor="middle" class="sublabel">total_m / lateral_m</text>
+  <text x="510" y="465" text-anchor="middle" class="sublabel">flight_time_s</text>
 
-  <!-- Footer legend -->
-  <rect x="40" y="700" width="1320" height="90" class="box"/>
-  <text x="60" y="735" class="small">
-    <tspan font-weight="700">Testability:</tspan> (1) Swap ISensorProvider (Real/Mock/Replay)  (2) Record traces from real runs  (3) Deterministic physics timestep
-  </text>
-  <text x="60" y="760" class="small">
-    <tspan font-weight="700">Performance:</tspan> Keep the render loop predictable; push variable-rate sensor input into the queue; avoid Python in the frame loop.
-  </text>
+  <!-- FSM States -->
+  <rect x="620" y="380" width="180" height="120" class="box" rx="5"/>
+  <text x="710" y="400" text-anchor="middle" class="label">FSM States</text>
+  <text x="710" y="425" text-anchor="middle" class="sublabel">Idle / Armed</text>
+  <text x="710" y="445" text-anchor="middle" class="sublabel">InFlight / Result</text>
+  <text x="710" y="465" text-anchor="middle" class="sublabel">Transitions</text>
+
+  <!-- Config/JSON -->
+  <rect x="820" y="380" width="180" height="120" class="box" rx="5"/>
+  <text x="910" y="400" text-anchor="middle" class="label">Config (JSON)</text>
+  <text x="910" y="425" text-anchor="middle" class="sublabel">sim.json</text>
+  <text x="910" y="445" text-anchor="middle" class="sublabel">clubs.json</text>
+  <text x="910" y="465" text-anchor="middle" class="sublabel">Physics / Render</text>
+
+  <!-- ============== DATA FLOW ARROWS ============== -->
+  <!-- Sensor -> ISensorProvider -->
+  <path d="M 90 180 L 90 220" class="arrow"/>
+
+  <!-- ISensorProvider -> InputAdapter -->
+  <path d="M 160 250 L 200 250" class="arrow"/>
+
+  <!-- InputAdapter -> EventQueue -->
+  <path d="M 270 180 L 270 220" class="arrow"/>
+
+  <!-- EventQueue -> GameStateMachine -->
+  <path d="M 340 260 L 400 260" class="arrow"/>
+
+  <!-- EventQueue -> Physics (Also feeds Physics) -->
+  <path d="M 340 260 L 400 220" class="arrow"/>
+
+  <!-- GameStateMachine -> Physics -->
+  <path d="M 470 180 L 470 220" class="arrow"/>
+
+  <!-- Physics -> Renderer -->
+  <path d="M 540 270 L 600 270" class="arrow"/>
+
+  <!-- Physics -> Logger -->
+  <path d="M 540 270 L 780 270" class="arrow"/>
+
+  <!-- Renderer -> Display -->
+  <path d="M 670 180 L 670 220" class="arrow"/>
+
+  <!-- ============== ANNOTATIONS ============== -->
+  <text x="130" y="340" font-size="12" fill="#666">Phase 1:</text>
+  <text x="130" y="358" font-size="12" fill="#666">Single Thread</text>
+
+  <text x="530" y="340" font-size="12" fill="#666">Fixed dt:</text>
+  <text x="530" y="358" font-size="12" fill="#666">240Hz</text>
+
+  <text x="750" y="340" font-size="12" fill="#666">Target:</text>
+  <text x="750" y="358" font-size="12" fill="#666">60 FPS</text>
+
+  <!-- ============== MAIN LOOP ANNOTATION ============== -->
+  <rect x="20" y="550" width="980" height="200" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="5,5" rx="5"/>
+  <text x="40" y="575" font-size="14" font-weight="bold" fill="#666">Main Loop (Pseudocode)</text>
+
+  <text x="40" y="605" font-family="monospace" font-size="11" fill="#333">while (!renderer.shouldClose()) {</text>
+  <text x="60" y="625" font-family="monospace" font-size="11" fill="#333">  // 1) Input polling (non-blocking)</text>
+  <text x="60" y="645" font-family="monospace" font-size="11" fill="#333">  while (sensor-&gt;poll(f)) { inputAdapter.toEvent(f, ev); q.push(ev); }</text>
+
+  <text x="60" y="670" font-family="monospace" font-size="11" fill="#333">  // 2) Drain events</text>
+  <text x="60" y="690" font-family="monospace" font-size="11" fill="#333">  while (q.pop(ev)) { gsm.onEvent(ev, phys); logger.write(ev); }</text>
+
+  <text x="60" y="715" font-family="monospace" font-size="11" fill="#333">  // 3) Physics (fixed timestep)  4) Render</text>
+  <text x="60" y="735" font-family="monospace" font-size="11" fill="#333">  phys.step(dt);  renderer.draw(gsm, phys, q);</text>
+
+  <text x="40" y="755" font-family="monospace" font-size="11" fill="#333">}</text>
+
+  <!-- Legend -->
+  <rect x="20" y="760" width="20" height="20" class="input-box" rx="2"/>
+  <text x="50" y="775" font-size="12">Input Layer</text>
+
+  <rect x="180" y="760" width="20" height="20" class="process-box" rx="2"/>
+  <text x="210" y="775" font-size="12">Processing Layer</text>
+
+  <rect x="400" y="760" width="20" height="20" class="output-box" rx="2"/>
+  <text x="430" y="775" font-size="12">Output Layer</text>
 </svg>
