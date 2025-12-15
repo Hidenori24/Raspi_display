@@ -1,0 +1,11 @@
+build/
+cmake-build-debug/
+cmake-build-release/
+.vs/
+.vscode/
+*.o
+*.a
+*.so
+*.dylib
+golf-sim
+.DS_Store
