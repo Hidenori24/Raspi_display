@@ -1,0 +1,2 @@
+/usr/bin/ar qc libdomain.a CMakeFiles/domain.dir/src/domain/Vec3.cpp.o CMakeFiles/domain.dir/src/domain/Trajectory.cpp.o CMakeFiles/domain.dir/src/domain/PhysicsEngine.cpp.o CMakeFiles/domain.dir/src/domain/GameState.cpp.o CMakeFiles/domain.dir/src/domain/GameStateMachine.cpp.o
+/usr/bin/ranlib libdomain.a

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libpresentation.a CMakeFiles/presentation.dir/src/app/App.cpp.o CMakeFiles/presentation.dir/src/render/Renderer.cpp.o
+/usr/bin/ranlib libpresentation.a

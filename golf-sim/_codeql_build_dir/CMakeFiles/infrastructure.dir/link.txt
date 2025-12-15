@@ -1,0 +1,2 @@
+/usr/bin/ar qc libinfrastructure.a CMakeFiles/infrastructure.dir/src/infrastructure/MockSensorProvider.cpp.o
+/usr/bin/ranlib libinfrastructure.a
