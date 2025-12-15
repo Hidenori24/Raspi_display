@@ -36,7 +36,6 @@ public:
   void drawHUD(const GreenData& green);
   void drawSetupScreen(float pin_distance, int hole_number, int par, 
                        const char* club_name, float wind_speed, float wind_angle);
-  void present();
 
 private:
   int screen_width_ = 1280;

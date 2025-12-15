@@ -224,13 +224,9 @@ void Renderer::drawHUD(const GreenData& green) {
   DrawText(fps_ss.str().c_str(), screen_width_ - 150, 10, 14, {255, 255, 0, 255});
 }
 
-void Renderer::present() {
-  BeginDrawing();
-  EndDrawing();
-}
-
 void Renderer::drawSetupScreen(float pin_distance, int hole_number, int par,
                                const char* club_name, float wind_speed, float wind_angle) {
+  BeginDrawing();
   // Clear with light green grass background
   ClearBackground({100, 180, 80, 255});
   
@@ -330,4 +326,6 @@ void Renderer::drawSetupScreen(float pin_distance, int hole_number, int par,
   std::stringstream fps_ss;
   fps_ss << "FPS: " << GetFPS();
   DrawText(fps_ss.str().c_str(), screen_width_ - 150, 10, 14, {255, 255, 0, 255});
+  
+  EndDrawing();
 }
