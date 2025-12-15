@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="820" viewBox="0 0 1400 820" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .box { fill: #ffffff; stroke: #111111; stroke-width: 2; rx: 14; ry: 14; }
+      .title { font-family: Arial, Helvetica, sans-serif; font-size: 20px; font-weight: 700; fill: #111; }
+      .text { font-family: Arial, Helvetica, sans-serif; font-size: 16px; fill: #111; }
+      .small { font-family: Arial, Helvetica, sans-serif; font-size: 14px; fill: #111; }
+      .muted { fill: #333; }
+      .arrow { stroke: #111; stroke-width: 2.5; fill: none; marker-end: url(#mArrow); }
+      .dash { stroke-dasharray: 7 6; }
+    </style>
+    <marker id="mArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <!-- Header -->
+  <text x="40" y="48" class="title">Raspberry Pi 5 Golf Simulator (Prototype) — Recommended Architecture</text>
+  <text x="40" y="76" class="small muted">Core: C++ (raylib/Eigen). Testable by design: Mock / Record-Replay / Deterministic Simulation.</text>
+
+  <!-- Left: Sensor sources -->
+  <rect x="40" y="120" width="360" height="170" class="box"/>
+  <text x="60" y="155" class="text" font-weight="700">Sensor Sources</text>
+  <text x="60" y="185" class="small">• Real Sensor (IMU, camera, etc.)</text>
+  <text x="60" y="210" class="small">• Mock Sensor (script / random)</text>
+  <text x="60" y="235" class="small">• Record/Replay (CSV/JSON traces)</text>
+  <text x="60" y="260" class="small muted">Goal: identical downstream behavior</text>
+
+  <!-- Sensor Adapter -->
+  <rect x="40" y="320" width="360" height="160" class="box"/>
+  <text x="60" y="355" class="text" font-weight="700">Input Adapter Layer</text>
+  <text x="60" y="385" class="small">Interface: ISensorProvider</text>
+  <text x="60" y="410" class="small">• Calibration / filtering</text>
+  <text x="60" y="435" class="small">• Timestamping / normalization</text>
+
+  <!-- Event bus -->
+  <rect x="440" y="220" width="300" height="180" class="box"/>
+  <text x="460" y="255" class="text" font-weight="700">Event Bus</text>
+  <text x="460" y="285" class="small">Lock-free queue / ring buffer</text>
+  <text x="460" y="310" class="small">Events: SwingStart, Impact, Pose, ...</text>
+  <text x="460" y="335" class="small muted">Decouples input timing from render loop</text>
+
+  <!-- Core App -->
+  <rect x="780" y="140" width="580" height="520" class="box"/>
+  <text x="805" y="175" class="text" font-weight="700">Core Application (single process)</text>
+
+  <!-- Sub-boxes inside core -->
+  <rect x="810" y="205" width="250" height="160" class="box"/>
+  <text x="830" y="240" class="text" font-weight="700">Game State</text>
+  <text x="830" y="270" class="small">Finite State Machine</text>
+  <text x="830" y="295" class="small">Practice / Round / Results</text>
+  <text x="830" y="320" class="small muted">Consumes events → commands</text>
+
+  <rect x="1090" y="205" width="245" height="160" class="box"/>
+  <text x="1110" y="240" class="text" font-weight="700">Physics Engine</text>
+  <text x="1110" y="270" class="small">Deterministic timestep</text>
+  <text x="1110" y="295" class="small">Ballistics / wind / spin (simplified)</text>
+  <text x="1110" y="320" class="small muted">Output: BallState trajectory</text>
+
+  <rect x="810" y="395" width="525" height="170" class="box"/>
+  <text x="830" y="430" class="text" font-weight="700">Renderer / UI</text>
+  <text x="830" y="460" class="small">raylib (2D / pseudo-3D)</text>
+  <text x="830" y="485" class="small">HUD: carry, total, dispersion, club</text>
+  <text x="830" y="510" class="small muted">Runs at 60 FPS, reads current states</text>
+
+  <rect x="810" y="585" width="525" height="60" class="box"/>
+  <text x="830" y="622" class="small"><tspan font-weight="700">Platform:</tspan> Raspberry Pi 5 + DRM/KMS (or X11) + OpenGL ES</text>
+
+  <!-- Side services -->
+  <rect x="440" y="420" width="300" height="180" class="box"/>
+  <text x="460" y="455" class="text" font-weight="700">Support Services</text>
+  <text x="460" y="485" class="small">• Config/Profile (JSON)</text>
+  <text x="460" y="510" class="small">• Logging (CSV) / Telemetry</text>
+  <text x="460" y="535" class="small">• Debug overlay / metrics</text>
+  <text x="460" y="560" class="small muted">Optional: Python analysis offline</text>
+
+  <!-- Arrows -->
+  <path d="M220 290 L220 320" class="arrow"/>
+  <path d="M400 400 L440 320" class="arrow"/>
+  <path d="M740 310 L780 285" class="arrow"/>
+
+  <!-- Internal arrows -->
+  <path d="M930 365 L930 395" class="arrow"/>
+  <path d="M1212 365 L1212 395" class="arrow"/>
+  <path d="M1060 285 L1090 285" class="arrow dash"/>
+  <text x="1010" y="275" class="small muted">commands</text>
+
+  <!-- Support arrows -->
+  <path d="M740 510 L780 480" class="arrow"/>
+  <path d="M590 420 L590 400" class="arrow dash"/>
+  <text x="604" y="412" class="small muted">config/log</text>
+
+  <!-- Footer legend -->
+  <rect x="40" y="700" width="1320" height="90" class="box"/>
+  <text x="60" y="735" class="small">
+    <tspan font-weight="700">Testability:</tspan> (1) Swap ISensorProvider (Real/Mock/Replay)  (2) Record traces from real runs  (3) Deterministic physics timestep
+  </text>
+  <text x="60" y="760" class="small">
+    <tspan font-weight="700">Performance:</tspan> Keep the render loop predictable; push variable-rate sensor input into the queue; avoid Python in the frame loop.
+  </text>
+</svg>
