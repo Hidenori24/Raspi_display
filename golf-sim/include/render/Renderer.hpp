@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <glm/glm.hpp>
 
 struct BallPosition {
   float x, y;  // 2D position on green
