@@ -106,6 +106,16 @@ void App::run() {
   GreenData green;
   green.width = 20.0f;
   green.length = 35.0f;
+  green.current_ball_pos = {0.0f, -17.5f};  // Start at tee position
+
+  // Intro screen: show stance view before setup
+  bool intro = true;
+  while (intro && !WindowShouldClose()) {
+    renderer.drawIntroScreen(game_state_.hole_number, game_state_.current_par, game_state_.pin_distance);
+    if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER)) {
+      intro = false;
+    }
+  }
   
   // Animation state
   float trajectory_progress = 0.0f;
@@ -160,24 +170,18 @@ void App::run() {
         phase_timer = 0.0f;
       }
       
-      // Draw setup screen
-      draw();
-      renderer.drawSetupScreen(
+      // Draw setup screen with green and tee marker
+      green.ball_positions = {{0.0f, -17.5f}};
+      green.current_ball_pos = {0.0f, -17.5f};
+      renderer.drawSetupScreenWithGreen(
         game_state_.pin_distance,
         game_state_.hole_number,
         game_state_.current_par,
         GameStateData::clubs[game_state_.selected_club].name,
         game_state_.wind_speed,
-        game_state_.wind_direction
+        game_state_.wind_direction,
+        green
       );
-      
-      // Draw club selection indicator
-      DrawText("Club: LEFT/RIGHT | Power: UP/DOWN | Aim: A/D", 20, SCREEN_HEIGHT - 40, 12, {255, 255, 100, 255});
-      std::stringstream power_ss;
-      power_ss << "Power: " << (int)(game_state_.power * 100) << "%";
-      DrawText(power_ss.str().c_str(), 20, SCREEN_HEIGHT - 60, 12, {100, 200, 100, 255});
-      
-      EndDrawing();
     }
     // ===== IN-FLIGHT PHASE =====
     else if (game_state_.phase == GamePhase::InFlight) {
@@ -227,7 +231,7 @@ void App::run() {
       display_green.distances_m = {0.0f};
       
       // Render flight
-      draw();
+      BeginDrawing();
       renderer.drawGreen(display_green);
       renderer.drawTrajectory(display_green);
       renderer.drawCurrentBall(display_green);
@@ -258,7 +262,7 @@ void App::run() {
       result_green.distances_m = {0.0f};
       
       // Render result
-      draw();
+      BeginDrawing();
       renderer.drawGreen(result_green);
       renderer.drawTrajectory(result_green);
       renderer.drawCurrentBall(result_green);
@@ -270,8 +274,6 @@ void App::run() {
       DrawRectangleLines(SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT / 2 - 80, 400, 160, {255, 200, 100, 255});
       DrawText("SHOT COMPLETE!", SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT / 2 - 60, 20, {255, 200, 100, 255});
       DrawText("Press SPACE for next hole", SCREEN_WIDTH / 2 - 160, SCREEN_HEIGHT / 2 + 10, 14, {200, 200, 200, 255});
-      
-      BeginDrawing();
       EndDrawing();
       
       // Press SPACE to go to next hole
