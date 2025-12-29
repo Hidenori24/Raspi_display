@@ -53,6 +53,8 @@
 /home/runner/work/Raspi_display/Raspi_display/golf-sim/_codeql_build_dir/_deps/raylib-build/raylib/external/glfw/src/CMakeFiles/install/local.dir
 /home/runner/work/Raspi_display/Raspi_display/golf-sim/_codeql_build_dir/_deps/raylib-build/raylib/external/glfw/src/CMakeFiles/install/strip.dir
 /home/runner/work/Raspi_display/Raspi_display/golf-sim/_codeql_build_dir/tests/CMakeFiles/test_physics.dir
+/home/runner/work/Raspi_display/Raspi_display/golf-sim/_codeql_build_dir/tests/CMakeFiles/test_screen_flow.dir
+/home/runner/work/Raspi_display/Raspi_display/golf-sim/_codeql_build_dir/tests/CMakeFiles/test_coordinate_converter.dir
 /home/runner/work/Raspi_display/Raspi_display/golf-sim/_codeql_build_dir/tests/CMakeFiles/package.dir
 /home/runner/work/Raspi_display/Raspi_display/golf-sim/_codeql_build_dir/tests/CMakeFiles/package_source.dir
 /home/runner/work/Raspi_display/Raspi_display/golf-sim/_codeql_build_dir/tests/CMakeFiles/test.dir
