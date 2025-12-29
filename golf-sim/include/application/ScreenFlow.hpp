@@ -2,7 +2,7 @@
 #pragma once
 
 #include "domain/GameState.hpp"
-#include "render/Renderer.hpp" // for ViewMode
+#include "render/ViewMode.hpp"  // for ViewMode enum
 
 namespace application {
 
