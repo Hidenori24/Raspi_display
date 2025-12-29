@@ -2,6 +2,9 @@
 #include "render/Renderer.hpp"
 #include "application/CoordinateConverter.hpp"
 #include <raylib.h>
+#include <filesystem>
+#include <cstdlib>
+#include <iostream>
 
 App::App()
   : physics_(physics_config_)
@@ -21,6 +24,15 @@ App::App()
     state_machine_, physics_, shot_service_);
   update_physics_ = std::make_unique<application::UpdatePhysicsUseCase>(
     state_machine_, physics_);
+
+  std::string course_path = "../data/course.csv";
+  if (const char* env_path = std::getenv("COURSE_CSV_PATH")) {
+    course_path = env_path;
+  }
+  if (!std::filesystem::exists(course_path)) {
+    std::cout << "[Info] Course file not found: " << course_path << " (using defaults)" << std::endl;
+  }
+  course_repo_ = std::make_unique<infrastructure::FileCourseRepository>(course_path);
   
   setup();
 }
@@ -35,6 +47,11 @@ void App::setup() {
   
   renderer_->init(SCREEN_WIDTH, SCREEN_HEIGHT);
   
+  // Load first hole info
+  current_course_ = course_repo_->loadHole(hole_number_);
+  current_par_ = current_course_.par;
+  current_distance_m_ = current_course_.pin_distance_m;
+
   // Start in Idle state with Intro screen
   screen_flow_.resetToIntro();
   
@@ -114,6 +131,10 @@ void App::handleInput() {
       state_machine_.transitionToIdle();
       hole_number_++;
       screen_flow_.onNextHole();
+      current_course_ = course_repo_->loadHole(hole_number_);
+      current_par_ = current_course_.par;
+      current_distance_m_ = current_course_.pin_distance_m;
+    screen_flow_.onNextHole();
       
       // Reset parameters
       current_params_.power = 0.7f;
@@ -131,7 +152,7 @@ void App::render() {
   // Handle screen states
   if (screen_flow_.screenState() == application::ScreenFlow::ScreenState::Intro) {
     // Draw intro screen with golfer and course view
-    renderer_->drawIntroScreen(hole_number_, 4, 350.0f);  // Par 4, 350 yards
+    renderer_->drawIntroScreen(hole_number_, current_par_, static_cast<float>(current_distance_m_));
     return;
   }
   
@@ -173,13 +194,12 @@ void App::render() {
     
     // Draw HUD (shared)
     DrawText(TextFormat("Hole: %d", hole_number_), 20, 20, 20, WHITE);
-    DrawText(TextFormat("Club: %s", club.name), 20, 50, 20, WHITE);
-    DrawText(TextFormat("Power: %.0f%%", current_params_.power * 100), 20, 80, 20, WHITE);
-    DrawText(TextFormat("Aim: %.1f deg", current_params_.aim_angle_deg), 20, 110, 20, WHITE);
-    // Instruction band
-    DrawRectangle(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {0, 0, 0, 140});
-    DrawRectangleLines(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {255, 255, 255, 60});
-    DrawText("SPACE: shoot | Arrows: club/power | A/D: aim | C/V: toggle silhouette", 20, SCREEN_HEIGHT - 40, 16, {255, 220, 200, 255});
+    DrawText(TextFormat("Par: %d", current_par_), 20, 50, 20, WHITE);
+    DrawText(TextFormat("Pin: %.0f m", current_distance_m_), 20, 80, 20, WHITE);
+    DrawText(TextFormat("Club: %s", club.name), 20, 110, 20, WHITE);
+    DrawText(TextFormat("Power: %.0f%%", current_params_.power * 100), 20, 140, 20, WHITE);
+    DrawText(TextFormat("Aim: %.1f deg", current_params_.aim_angle_deg), 20, 170, 20, WHITE);
+    DrawText("SPACE to shoot | Arrows: club/power | A/D: aim", 20, SCREEN_HEIGHT - 40, 16, LIGHTGRAY);
   }
   else if (state == domain::GameState::InFlight || state == domain::GameState::Result) {
     // Flight or result screen (overhead view)
