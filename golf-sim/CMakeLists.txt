@@ -49,6 +49,7 @@ target_link_libraries(application PUBLIC domain)
 # ===== INFRASTRUCTURE LAYER (depends on application, domain) =====
 add_library(infrastructure STATIC
   src/infrastructure/MockSensorProvider.cpp
+  src/infrastructure/FileCourseRepository.cpp
 )
 target_include_directories(infrastructure PUBLIC include)
 target_link_libraries(infrastructure PUBLIC application domain)

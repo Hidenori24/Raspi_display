@@ -2,10 +2,13 @@
 
 #include "domain/GameStateMachine.hpp"
 #include "domain/PhysicsEngine.hpp"
+#include "application/CourseInfo.hpp"
+#include "application/CourseRepository.hpp"
 #include "application/ShotParameterService.hpp"
 #include "application/UseCases.hpp"
 #include "application/ScreenFlow.hpp"
 #include "infrastructure/MockSensorProvider.hpp"
+#include "infrastructure/FileCourseRepository.hpp"
 #include <memory>
 
 // Forward declaration to avoid raylib include here
@@ -40,6 +43,8 @@ private:
   application::ShotParameters current_params_;
   std::unique_ptr<application::ExecuteShotUseCase> execute_shot_;
   std::unique_ptr<application::UpdatePhysicsUseCase> update_physics_;
+  std::unique_ptr<application::CourseRepository> course_repo_;
+  application::CourseInfo current_course_;
   
   // Infrastructure layer
   std::unique_ptr<infrastructure::MockSensorProvider> sensor_provider_;
@@ -49,6 +54,8 @@ private:
   
   // UI state (presentation concern)
   int hole_number_ = 1;
+  int current_par_ = 4;
+  double current_distance_m_ = 200.0;
   bool window_open_ = true;
   application::ScreenFlow screen_flow_{};
 };
