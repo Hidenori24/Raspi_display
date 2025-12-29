@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <raylib.h>
+#include "render/ViewMode.hpp"
 
 struct BallPosition {
   float x, y;  // 2D position on green
@@ -21,11 +22,6 @@ struct GreenData {
   BallPosition current_ball_pos;  // Current ball position
   float carry_distance = 0.0f;
   float lateral_distance = 0.0f;
-};
-
-enum class ViewMode {
-  PlayerView,    // Close-up view for aiming
-  OverheadView   // Overhead view for watching shot
 };
 
 class Renderer {

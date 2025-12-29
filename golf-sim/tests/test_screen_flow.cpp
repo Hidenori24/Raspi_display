@@ -56,6 +56,10 @@ TEST(result_resets_to_intro) {
 // selectView always returns OverheadView until PlayerView is stable.
 TEST(view_selection_always_overhead_for_stability) {
   application::ScreenFlow flow;
+  // Initially in Intro, cinematic is off -> overhead
+  assert(flow.selectView(domain::GameState::Idle) == ViewMode::OverheadView);
+  
+  // After advancing to Playing, cinematic is on -> player view
   flow.advanceFromIntro();
   
   // Even with cinematic enabled (golfer silhouette UI state)
@@ -66,6 +70,7 @@ TEST(view_selection_always_overhead_for_stability) {
   flow.onShot();
   assert(!flow.cinematicEnabled());
   flow.onGameStateChange(domain::GameState::InFlight);
+  assert(!flow.cinematicEnabled());
   assert(flow.selectView(domain::GameState::InFlight) == ViewMode::OverheadView);
   
   // This behavior is temporary - see test below for expected future behavior
