@@ -30,9 +30,9 @@ public:
 
   // Convert a single domain position to render coordinates
   struct RenderPoint {
-    float x;
-    float y;
-    float height;
+    float x;       // Lateral position in render space (unchanged from domain)
+    float y;       // Downfield position in render space (domain y + TEE_RENDER_OFFSET_Y)
+    float height;  // Height above ground (unchanged from domain z)
   };
 
   static RenderPoint toRenderCoordinates(const domain::Vec3& domain_pos);
