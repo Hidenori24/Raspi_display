@@ -602,7 +602,8 @@ void Renderer::drawIntroScreen(int hole_number, int par, float pin_distance) {
   DrawText(dist_ss.str().c_str(), 20, 82, 22, {230, 230, 230, 255});
 
   DrawText("Take your stance...", 20, 118, 20, {230, 230, 230, 255});
-  DrawText("SPACE / ENTER to start setup", 20, 146, 18, {180, 240, 180, 255});
+  DrawText("SPACE / ENTER: start", 20, 146, 18, {180, 240, 180, 255});
+  DrawText("C: cinematic | V: overhead/player (in play)", 20, 172, 16, {200, 220, 255, 255});
 
   // Bottom power bar placeholder
   float bar_x = screen_width_ * 0.20f;

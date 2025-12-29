@@ -34,8 +34,9 @@ void App::setup() {
   
   renderer_->init(SCREEN_WIDTH, SCREEN_HEIGHT);
   
-  // Start in Armed state (ready to shoot)
-  state_machine_.transitionToArmed();
+  // Start in Idle state with Intro screen
+  screen_state_ = ScreenState::Intro;
+  // state_machine starts in Idle by default
   
   // Default shot parameters
   current_params_.club_index = 0;  // Driver
@@ -54,11 +55,27 @@ void App::run() {
 }
 
 void App::handleInput() {
+  // Screen state transitions
+  if (screen_state_ == ScreenState::Intro) {
+    // Intro screen: SPACE/ENTER to start playing
+    if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER)) {
+      screen_state_ = ScreenState::Playing;
+      state_machine_.transitionToArmed();
+      cinematic_view_ = false;  // Start in normal view
+      manual_view_override_ = false;
+    }
+    return;  // No other input during intro
+  }
+  
+  // Playing state: normal game input
   domain::GameState state = state_machine_.getCurrentState();
   
-  // View mode toggle (V key) - works in all states
+  // View mode toggles
   if (IsKeyPressed(KEY_V)) {
     manual_view_override_ = !manual_view_override_;
+  }
+  if (IsKeyPressed(KEY_C)) {
+    cinematic_view_ = !cinematic_view_;
   }
   
   if (state == domain::GameState::Armed) {
@@ -90,6 +107,9 @@ void App::handleInput() {
     
     // Execute shot
     if (IsKeyPressed(KEY_SPACE)) {
+      // Ensure automatic view switching on shot
+      manual_view_override_ = false;
+      cinematic_view_ = false;
       execute_shot_->execute(current_params_);
     }
   }
@@ -97,9 +117,11 @@ void App::handleInput() {
     // Next hole
     if (IsKeyPressed(KEY_SPACE)) {
       physics_.reset();
-      state_machine_.transitionToArmed();
+      state_machine_.transitionToIdle();
       hole_number_++;
       manual_view_override_ = false;  // Reset view override for next hole
+      screen_state_ = ScreenState::Intro;  // Back to intro for next hole
+      cinematic_view_ = false;
       
       // Reset parameters
       current_params_.power = 0.7f;
@@ -114,9 +136,41 @@ void App::update(double dt) {
 }
 
 void App::render() {
-  BeginDrawing();
+  // Handle screen states
+  if (screen_state_ == ScreenState::Intro) {
+    // Draw intro screen with golfer and course view
+    renderer_->drawIntroScreen(hole_number_, 4, 350.0f);  // Par 4, 350 yards
+    return;
+  }
   
-  domain::GameState state = state_machine_.getCurrentState();
+  // Playing state: normal game rendering
+  if (cinematic_view_) {
+    // Show cinematic golfer silhouette; still honor state machine but no HUD updates here
+    renderer_->drawIntroScreen(hole_number_, 4, 350.0f);
+    BeginDrawing();
+    DrawText("C: exit cinematic | V: overhead/player | SPACE: shoot/next", 20, SCREEN_HEIGHT - 30, 16, LIGHTGRAY);
+    EndDrawing();
+    return;
+  }
+  
+  BeginDrawing();
+ 
+    domain::GameState state = state_machine_.getCurrentState();
+
+    // Handle state transitions to stabilize view switching
+    if (state != last_state_) {
+    // On entering flight/result, ensure automatic overhead view
+    if (state == domain::GameState::InFlight || state == domain::GameState::Result) {
+      manual_view_override_ = false;
+      cinematic_view_ = false;
+    }
+    // On entering Armed, reset overrides to default close-up
+    if (state == domain::GameState::Armed) {
+      manual_view_override_ = false;
+      cinematic_view_ = false;
+    }
+    last_state_ = state;
+  }
   
   // Determine view mode based on game state and manual override
   ViewMode desired_view;
@@ -162,7 +216,11 @@ void App::render() {
     DrawText(TextFormat("Club: %s", club.name), 20, 50, 20, WHITE);
     DrawText(TextFormat("Power: %.0f%%", current_params_.power * 100), 20, 80, 20, WHITE);
     DrawText(TextFormat("Aim: %.1f deg", current_params_.aim_angle_deg), 20, 110, 20, WHITE);
-    DrawText("SPACE to shoot | Arrows: club/power | A/D: aim | V: toggle view", 20, SCREEN_HEIGHT - 40, 16, LIGHTGRAY);
+    // Instruction band
+    DrawRectangle(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {0, 0, 0, 140});
+    DrawRectangleLines(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {255, 255, 255, 60});
+    DrawText("SPACE: shoot | Arrows: club/power | A/D: aim | V: overhead/player | C: cinematic", 20, SCREEN_HEIGHT - 40, 16, {255, 220, 200, 255});
+    DrawText("Current view: Player", SCREEN_WIDTH - 220, SCREEN_HEIGHT - 40, 16, {255, 220, 200, 255});
   }
   else if (state == domain::GameState::InFlight || state == domain::GameState::Result) {
     // Flight or result screen (overhead view)
@@ -192,6 +250,10 @@ void App::render() {
     renderer_->drawTrajectory(green);
     if (state == domain::GameState::InFlight) {
       renderer_->drawCurrentBall(green);  // Only draw moving ball during flight
+      DrawRectangle(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {0, 0, 0, 140});
+      DrawRectangleLines(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {255, 255, 255, 60});
+      DrawText("In-flight | V: overhead/player | C: cinematic", 20, SCREEN_HEIGHT - 40, 16, {255, 220, 200, 255});
+      DrawText("Current view: Overhead", SCREEN_WIDTH - 220, SCREEN_HEIGHT - 40, 16, {255, 220, 200, 255});
     }
     
     if (state == domain::GameState::Result) {
@@ -204,7 +266,11 @@ void App::render() {
       DrawText(TextFormat("Total: %.1f m", result.total_m), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 10, 18, WHITE);
       DrawText(TextFormat("Lateral: %.1f m", result.lateral_m), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 20, 18, WHITE);
       DrawText(TextFormat("Time: %.2f s", result.flight_time_s), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 50, 18, WHITE);
-      DrawText("Press SPACE for next hole", SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT / 2 + 80, 14, LIGHTGRAY);
+      DrawText("SPACE: next hole | V: overhead/player | C: cinematic", SCREEN_WIDTH / 2 - 170, SCREEN_HEIGHT / 2 + 80, 14, {255, 220, 200, 255});
+      DrawRectangle(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {0, 0, 0, 140});
+      DrawRectangleLines(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {255, 255, 255, 60});
+      DrawText("Result | SPACE: next hole | V: overhead/player | C: cinematic", 20, SCREEN_HEIGHT - 40, 16, {255, 220, 200, 255});
+      DrawText("Current view: Overhead", SCREEN_WIDTH - 220, SCREEN_HEIGHT - 40, 16, {255, 220, 200, 255});
     }
   }
   
