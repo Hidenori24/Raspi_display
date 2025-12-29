@@ -518,15 +518,6 @@ void Renderer::drawSetupScreenWithGreen(float pin_distance, int hole_number, int
 void Renderer::drawIntroScreen(int hole_number, int par, float pin_distance) {
   BeginDrawing();
   drawIntroCourseOverview(hole_number, par, pin_distance);
-  // Overlay instructions
-  std::stringstream hole_ss; hole_ss << "Hole " << hole_number << "  PAR " << par;
-  std::stringstream dist_ss; dist_ss << (int)pin_distance << "y";
-
-  DrawRectangle(20, 20, 320, 110, {0, 0, 0, 140});
-  DrawRectangleLines(20, 20, 320, 110, {255, 255, 255, 60});
-  DrawText(hole_ss.str().c_str(), 32, 32, 24, {255, 235, 140, 255});
-  DrawText(dist_ss.str().c_str(), 32, 64, 20, {230, 230, 230, 255});
-  DrawText("SPACE / ENTER: go to silhouette setup", 32, 94, 16, {200, 220, 255, 255});
   EndDrawing();
 }
 
