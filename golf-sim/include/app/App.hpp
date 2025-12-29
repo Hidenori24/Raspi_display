@@ -49,4 +49,5 @@ private:
   // UI state (presentation concern)
   int hole_number_ = 1;
   bool window_open_ = true;
+  bool manual_view_override_ = false;  // User manually switched view
 };

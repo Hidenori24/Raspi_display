@@ -12,16 +12,34 @@ void Renderer::init(int width, int height) {
   screen_width_ = width;
   screen_height_ = height;
   scale_factor_ = 30.0f;
+  view_mode_ = ViewMode::PlayerView;
+  updatePerspectiveParams();
+}
+
+void Renderer::setViewMode(ViewMode mode) {
+  view_mode_ = mode;
   updatePerspectiveParams();
 }
 
 void Renderer::updatePerspectiveParams() {
   persp_.vanish_x = screen_width_ / 2.0f;
-  persp_.vanish_y = screen_height_ / 2.0f;
-  persp_.near_y = screen_height_ * 0.75f;
-  persp_.far_y = screen_height_ * 0.15f;
-  persp_.near_width = 20.0f * scale_factor_;  // green.width
-  persp_.perspective_scale = 0.5f;
+  
+  if (view_mode_ == ViewMode::PlayerView) {
+    // Close-up view from player position (behind the ball)
+    persp_.vanish_y = screen_height_ * 0.45f;
+    persp_.near_y = screen_height_ * 0.85f;
+    persp_.far_y = screen_height_ * 0.15f;
+    persp_.near_width = 20.0f * scale_factor_;
+    persp_.perspective_scale = 0.4f;  // Strong perspective
+  } else {
+    // Overhead view for watching the shot
+    persp_.vanish_y = screen_height_ * 0.35f;
+    persp_.near_y = screen_height_ * 0.75f;
+    persp_.far_y = screen_height_ * 0.10f;
+    persp_.near_width = 20.0f * scale_factor_;
+    persp_.perspective_scale = 0.6f;  // Less perspective (more overhead)
+  }
+  
   persp_.far_width = persp_.near_width * persp_.perspective_scale;
 }
 
@@ -169,14 +187,98 @@ void Renderer::drawCurrentBall(const GreenData& green) {
 }
 
 void Renderer::drawBalls(const std::vector<BallPosition>& positions) {
-  // Draw previous shots (tee position - larger)
+  // Draw tee box and player for each position
   for (size_t i = 0; i < positions.size(); ++i) {
     Vector2 screen_pos = mapGreenCoordToScreen(positions[i].x, positions[i].y);
     
-    // Draw tee marker (yellow cross)
-    DrawLineEx({screen_pos.x - 8, screen_pos.y}, {screen_pos.x + 8, screen_pos.y}, 2, {255, 255, 150, 200});
-    DrawLineEx({screen_pos.x, screen_pos.y - 8}, {screen_pos.x, screen_pos.y + 8}, 2, {255, 255, 150, 200});
-    DrawCircleLines((int)screen_pos.x, (int)screen_pos.y, 6, {255, 255, 100, 200});
+    // Draw tee box area (rectangle behind the tee)
+    float tee_box_width = 30.0f;
+    float tee_box_height = 20.0f;
+    Rectangle tee_box = {
+      screen_pos.x - tee_box_width / 2,
+      screen_pos.y - tee_box_height / 2,
+      tee_box_width,
+      tee_box_height
+    };
+    DrawRectangleRec(tee_box, {100, 150, 100, 150});  // Darker green for tee box
+    DrawRectangleLinesEx(tee_box, 2, {80, 120, 80, 255});
+    
+    // Draw tee marker (white T shape)
+    DrawLineEx({screen_pos.x - 6, screen_pos.y - 3}, {screen_pos.x + 6, screen_pos.y - 3}, 3, {255, 255, 255, 255});
+    DrawLineEx({screen_pos.x, screen_pos.y - 3}, {screen_pos.x, screen_pos.y + 6}, 3, {255, 255, 255, 255});
+    
+    // Draw ball on tee (small white ball)
+    DrawCircle((int)screen_pos.x, (int)screen_pos.y, 5, {255, 255, 255, 255});
+    DrawCircleLines((int)screen_pos.x, (int)screen_pos.y, 5, {200, 200, 200, 255});
+    
+    // Draw player icon (stick figure)
+    float player_x = screen_pos.x + 15;
+    float player_y = screen_pos.y;
+    
+    // Head
+    DrawCircle((int)player_x, (int)(player_y - 12), 4, {255, 200, 150, 255});
+    // Body
+    DrawLineEx({player_x, player_y - 8}, {player_x, player_y + 6}, 2, {100, 100, 255, 255});
+    // Arms (holding club position)
+    DrawLineEx({player_x, player_y - 4}, {player_x - 6, player_y + 2}, 2, {100, 100, 255, 255});
+    DrawLineEx({player_x, player_y - 4}, {player_x - 8, player_y + 6}, 2, {100, 100, 255, 255});
+    // Legs
+    DrawLineEx({player_x, player_y + 6}, {player_x - 3, player_y + 12}, 2, {100, 100, 255, 255});
+    DrawLineEx({player_x, player_y + 6}, {player_x + 3, player_y + 12}, 2, {100, 100, 255, 255});
+    
+    // Label
+    DrawText("TEE", (int)(screen_pos.x - 12), (int)(screen_pos.y + 15), 10, {255, 255, 200, 255});
+  }
+}
+
+void Renderer::drawAimDirection(const BallPosition& tee_pos, float aim_angle_deg, float power) {
+  Vector2 tee_screen = mapGreenCoordToScreen(tee_pos.x, tee_pos.y);
+  
+  // Calculate aim direction in green coordinates
+  // aim_angle_deg: positive = right, negative = left
+  float aim_rad = aim_angle_deg * M_PI / 180.0f;
+  
+  // Direction vector (forward is +Y in green coords)
+  float dx = std::sin(aim_rad);
+  float dy = std::cos(aim_rad);
+  
+  // Draw aim line with length based on power
+  float line_length = 50.0f + power * 100.0f;  // 50-150 pixels
+  
+  // End point in green coordinates
+  float end_x = tee_pos.x + dx * 5.0f;  // 5 meters forward
+  float end_y = tee_pos.y + dy * 5.0f;
+  Vector2 end_screen = mapGreenCoordToScreen(end_x, end_y);
+  
+  // Draw aim line
+  Color aim_color = {255, 255, 100, 200};
+  DrawLineEx(tee_screen, end_screen, 3, aim_color);
+  
+  // Draw arrow head
+  Vector2 dir = {end_screen.x - tee_screen.x, end_screen.y - tee_screen.y};
+  float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+  if (len > 0.1f) {
+    dir.x /= len;
+    dir.y /= len;
+    
+    float arrow_size = 10.0f;
+    Vector2 left = {end_screen.x - dir.x * arrow_size - dir.y * arrow_size * 0.5f,
+                    end_screen.y - dir.y * arrow_size + dir.x * arrow_size * 0.5f};
+    Vector2 right = {end_screen.x - dir.x * arrow_size + dir.y * arrow_size * 0.5f,
+                     end_screen.y - dir.y * arrow_size - dir.x * arrow_size * 0.5f};
+    
+    DrawTriangle(end_screen, left, right, aim_color);
+  }
+  
+  // Draw power indicator circles at intervals
+  for (float i = 1.0f; i <= 5.0f; i += 1.0f) {
+    float ratio = i / 5.0f;
+    if (ratio <= power) {
+      float mid_x = tee_pos.x + dx * i;
+      float mid_y = tee_pos.y + dy * i;
+      Vector2 mid_screen = mapGreenCoordToScreen(mid_x, mid_y);
+      DrawCircle((int)mid_screen.x, (int)mid_screen.y, 3, {255, 255, 100, 150});
+    }
   }
 }
 

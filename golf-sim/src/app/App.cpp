@@ -56,6 +56,11 @@ void App::run() {
 void App::handleInput() {
   domain::GameState state = state_machine_.getCurrentState();
   
+  // View mode toggle (V key) - works in all states
+  if (IsKeyPressed(KEY_V)) {
+    manual_view_override_ = !manual_view_override_;
+  }
+  
   if (state == domain::GameState::Armed) {
     // Club selection
     if (IsKeyPressed(KEY_LEFT)) {
@@ -94,6 +99,7 @@ void App::handleInput() {
       physics_.reset();
       state_machine_.transitionToArmed();
       hole_number_++;
+      manual_view_override_ = false;  // Reset view override for next hole
       
       // Reset parameters
       current_params_.power = 0.7f;
@@ -112,6 +118,26 @@ void App::render() {
   
   domain::GameState state = state_machine_.getCurrentState();
   
+  // Determine view mode based on game state and manual override
+  ViewMode desired_view;
+  if (manual_view_override_) {
+    // User pressed V - toggle between views
+    if (state == domain::GameState::Armed) {
+      desired_view = ViewMode::OverheadView;  // Allow overhead in Armed if toggled
+    } else {
+      desired_view = ViewMode::PlayerView;  // Allow player view in flight if toggled
+    }
+  } else {
+    // Default automatic view switching
+    if (state == domain::GameState::Armed) {
+      desired_view = ViewMode::PlayerView;  // Close-up for aiming
+    } else {
+      desired_view = ViewMode::OverheadView;  // Overhead for watching
+    }
+  }
+  
+  renderer_->setViewMode(desired_view);
+  
   // Prepare green data for rendering
   GreenData green;
   green.width = 20.0f;
@@ -127,23 +153,28 @@ void App::render() {
     renderer_->drawGreen(green);
     renderer_->drawBalls(green.ball_positions);
     
+    // Draw aim direction arrow
+    BallPosition tee = {0.0f, -17.5f};
+    renderer_->drawAimDirection(tee, current_params_.aim_angle_deg, current_params_.power);
+    
     // Draw HUD
     DrawText(TextFormat("Hole: %d", hole_number_), 20, 20, 20, WHITE);
     DrawText(TextFormat("Club: %s", club.name), 20, 50, 20, WHITE);
     DrawText(TextFormat("Power: %.0f%%", current_params_.power * 100), 20, 80, 20, WHITE);
     DrawText(TextFormat("Aim: %.1f deg", current_params_.aim_angle_deg), 20, 110, 20, WHITE);
-    DrawText("SPACE to shoot | Arrows: club/power | A/D: aim", 20, SCREEN_HEIGHT - 40, 16, LIGHTGRAY);
+    DrawText("SPACE to shoot | Arrows: club/power | A/D: aim | V: toggle view", 20, SCREEN_HEIGHT - 40, 16, LIGHTGRAY);
   }
   else if (state == domain::GameState::InFlight || state == domain::GameState::Result) {
-    // Flight or result screen
+    // Flight or result screen (overhead view)
     const domain::Trajectory& traj = physics_.getTrajectory();
     
     // Convert trajectory to render format
+    // Physics uses (0,0,0) as tee position, but render uses (0, -17.5) as tee
     green.trajectory.clear();
     for (const auto& point : traj.getPoints()) {
       green.trajectory.push_back({
         static_cast<float>(point.pos.x),
-        static_cast<float>(point.pos.y),
+        static_cast<float>(point.pos.y - 17.5),  // Offset to match tee position in render coords
         static_cast<float>(point.pos.z)
       });
     }
@@ -151,15 +182,17 @@ void App::render() {
     if (!traj.empty()) {
       const domain::BallState& last = traj.getLastPoint();
       green.current_ball_pos.x = static_cast<float>(last.pos.x);
-      green.current_ball_pos.y = static_cast<float>(last.pos.y);
+      green.current_ball_pos.y = static_cast<float>(last.pos.y - 17.5);  // Offset to match render coords
     }
     
     green.ball_positions = {{0.0f, -17.5f}};  // Tee position
     
     renderer_->drawGreen(green);
+    renderer_->drawBalls(green.ball_positions);  // Draw tee and player first (behind trajectory)
     renderer_->drawTrajectory(green);
-    renderer_->drawCurrentBall(green);
-    renderer_->drawBalls(green.ball_positions);
+    if (state == domain::GameState::InFlight) {
+      renderer_->drawCurrentBall(green);  // Only draw moving ball during flight
+    }
     
     if (state == domain::GameState::Result) {
       domain::ShotResult result = physics_.calculateResult();

@@ -23,15 +23,22 @@ struct GreenData {
   float lateral_distance = 0.0f;
 };
 
+enum class ViewMode {
+  PlayerView,    // Close-up view for aiming
+  OverheadView   // Overhead view for watching shot
+};
+
 class Renderer {
 public:
   Renderer();
   ~Renderer();
 
   void init(int width, int height);
+  void setViewMode(ViewMode mode);  // Switch between views
   void drawGreen(const GreenData& green);
   void drawTrajectory(const GreenData& green);  // Draw ball flight path
   void drawBalls(const std::vector<BallPosition>& positions);
+  void drawAimDirection(const BallPosition& tee_pos, float aim_angle_deg, float power);  // Draw aim arrow
   void drawCurrentBall(const GreenData& green);  // Draw in-flight ball
   void drawHUD(const GreenData& green);
   void drawSetupScreen(float pin_distance, int hole_number, int par, 
@@ -45,6 +52,7 @@ private:
   int screen_width_ = 1280;
   int screen_height_ = 720;
   float scale_factor_ = 1.0f;  // pixels per meter
+  ViewMode view_mode_ = ViewMode::PlayerView;  // Current view mode
   
   // Perspective mapping helpers
   struct PerspectiveParams {
