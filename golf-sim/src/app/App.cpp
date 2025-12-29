@@ -1,5 +1,6 @@
 #include "app/App.hpp"
 #include "render/Renderer.hpp"
+#include "application/CoordinateConverter.hpp"
 #include <raylib.h>
 
 App::App()
@@ -34,8 +35,8 @@ void App::setup() {
   
   renderer_->init(SCREEN_WIDTH, SCREEN_HEIGHT);
   
-  // Start in Armed state (ready to shoot)
-  state_machine_.transitionToArmed();
+  // Start in Idle state with Intro screen
+  screen_flow_.resetToIntro();
   
   // Default shot parameters
   current_params_.club_index = 0;  // Driver
@@ -54,7 +55,24 @@ void App::run() {
 }
 
 void App::handleInput() {
+  // Screen state transitions
+  if (screen_flow_.screenState() == application::ScreenFlow::ScreenState::Intro) {
+    // Intro screen: SPACE/ENTER to start playing
+    if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER)) {
+      if (screen_flow_.advanceFromIntro()) {
+        state_machine_.transitionToArmed();
+      }
+    }
+    return;  // No other input during intro
+  }
+  
+  // Playing state: normal game input
   domain::GameState state = state_machine_.getCurrentState();
+  
+  // View mode toggles
+  if (IsKeyPressed(KEY_V) || IsKeyPressed(KEY_C)) {
+    screen_flow_.toggleCinematic();
+  }
   
   if (state == domain::GameState::Armed) {
     // Club selection
@@ -85,6 +103,7 @@ void App::handleInput() {
     
     // Execute shot
     if (IsKeyPressed(KEY_SPACE)) {
+      screen_flow_.onShot();
       execute_shot_->execute(current_params_);
     }
   }
@@ -92,8 +111,9 @@ void App::handleInput() {
     // Next hole
     if (IsKeyPressed(KEY_SPACE)) {
       physics_.reset();
-      state_machine_.transitionToArmed();
+      state_machine_.transitionToIdle();
       hole_number_++;
+      screen_flow_.onNextHole();
       
       // Reset parameters
       current_params_.power = 0.7f;
@@ -108,9 +128,25 @@ void App::update(double dt) {
 }
 
 void App::render() {
-  BeginDrawing();
+  // Handle screen states
+  if (screen_flow_.screenState() == application::ScreenFlow::ScreenState::Intro) {
+    // Draw intro screen with golfer and course view
+    renderer_->drawIntroScreen(hole_number_, 4, 350.0f);  // Par 4, 350 yards
+    return;
+  }
   
+  BeginDrawing();
+ 
   domain::GameState state = state_machine_.getCurrentState();
+
+  // Handle state transitions to stabilize view switching
+  screen_flow_.onGameStateChange(state);
+  bool cinematic = screen_flow_.cinematicEnabled();
+  
+  // Determine view mode (now fixed to Overhead for stability)
+  ViewMode desired_view = screen_flow_.selectView(state);
+  
+  renderer_->setViewMode(desired_view);
   
   // Prepare green data for rendering
   GreenData green;
@@ -119,47 +155,62 @@ void App::render() {
   
   if (state == domain::GameState::Armed) {
     // Setup screen
-    green.current_ball_pos = {0.0f, -17.5f};
-    green.ball_positions = {{0.0f, -17.5f}};
+    green.current_ball_pos = {0.0f, application::CoordinateConverter::TEE_RENDER_OFFSET_Y};
+    green.ball_positions = {{0.0f, application::CoordinateConverter::TEE_RENDER_OFFSET_Y}};
     
     const application::ClubData& club = shot_service_.getClubData(current_params_.club_index);
+
+    if (cinematic) {
+      // Draw silhouette background without text, then overlay HUD for controls
+      renderer_->drawIntroSceneLayer(hole_number_, 4, 350.0f, false);
+    } else {
+      renderer_->drawGreen(green);
+      renderer_->drawBalls(green.ball_positions);
+      // Draw aim direction arrow
+      BallPosition tee = {0.0f, application::CoordinateConverter::TEE_RENDER_OFFSET_Y};
+      renderer_->drawAimDirection(tee, current_params_.aim_angle_deg, current_params_.power);
+    }
     
-    renderer_->drawGreen(green);
-    renderer_->drawBalls(green.ball_positions);
-    
-    // Draw HUD
+    // Draw HUD (shared)
     DrawText(TextFormat("Hole: %d", hole_number_), 20, 20, 20, WHITE);
     DrawText(TextFormat("Club: %s", club.name), 20, 50, 20, WHITE);
     DrawText(TextFormat("Power: %.0f%%", current_params_.power * 100), 20, 80, 20, WHITE);
     DrawText(TextFormat("Aim: %.1f deg", current_params_.aim_angle_deg), 20, 110, 20, WHITE);
-    DrawText("SPACE to shoot | Arrows: club/power | A/D: aim", 20, SCREEN_HEIGHT - 40, 16, LIGHTGRAY);
+    // Instruction band
+    DrawRectangle(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {0, 0, 0, 140});
+    DrawRectangleLines(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {255, 255, 255, 60});
+    DrawText("SPACE: shoot | Arrows: club/power | A/D: aim | C/V: toggle silhouette", 20, SCREEN_HEIGHT - 40, 16, {255, 220, 200, 255});
   }
   else if (state == domain::GameState::InFlight || state == domain::GameState::Result) {
-    // Flight or result screen
+    // Flight or result screen (overhead view)
     const domain::Trajectory& traj = physics_.getTrajectory();
     
-    // Convert trajectory to render format
+    // Convert trajectory from domain (physics) coordinates to render coordinates
+    auto render_points = application::CoordinateConverter::toRenderTrajectory(traj);
     green.trajectory.clear();
-    for (const auto& point : traj.getPoints()) {
-      green.trajectory.push_back({
-        static_cast<float>(point.pos.x),
-        static_cast<float>(point.pos.y),
-        static_cast<float>(point.pos.z)
-      });
+    for (const auto& point : render_points) {
+      green.trajectory.push_back({point.x, point.y, point.height});
     }
     
     if (!traj.empty()) {
       const domain::BallState& last = traj.getLastPoint();
-      green.current_ball_pos.x = static_cast<float>(last.pos.x);
-      green.current_ball_pos.y = static_cast<float>(last.pos.y);
+      auto render_pos = application::CoordinateConverter::toRenderCoordinates(last.pos);
+      green.current_ball_pos.x = render_pos.x;
+      green.current_ball_pos.y = render_pos.y;
     }
     
-    green.ball_positions = {{0.0f, -17.5f}};  // Tee position
+    // Tee position in render coordinates
+    green.ball_positions = {{0.0f, application::CoordinateConverter::TEE_RENDER_OFFSET_Y}};
     
     renderer_->drawGreen(green);
+    renderer_->drawBalls(green.ball_positions);  // Draw tee and player first (behind trajectory)
     renderer_->drawTrajectory(green);
-    renderer_->drawCurrentBall(green);
-    renderer_->drawBalls(green.ball_positions);
+    if (state == domain::GameState::InFlight) {
+      renderer_->drawCurrentBall(green);  // Only draw moving ball during flight
+      DrawRectangle(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {0, 0, 0, 140});
+      DrawRectangleLines(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {255, 255, 255, 60});
+      DrawText("In-flight | C/V: toggle silhouette", 20, SCREEN_HEIGHT - 40, 16, {255, 220, 200, 255});
+    }
     
     if (state == domain::GameState::Result) {
       domain::ShotResult result = physics_.calculateResult();
@@ -171,7 +222,10 @@ void App::render() {
       DrawText(TextFormat("Total: %.1f m", result.total_m), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 10, 18, WHITE);
       DrawText(TextFormat("Lateral: %.1f m", result.lateral_m), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 20, 18, WHITE);
       DrawText(TextFormat("Time: %.2f s", result.flight_time_s), SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 50, 18, WHITE);
-      DrawText("Press SPACE for next hole", SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT / 2 + 80, 14, LIGHTGRAY);
+      DrawText("SPACE: next hole | C/V: toggle silhouette", SCREEN_WIDTH / 2 - 160, SCREEN_HEIGHT / 2 + 80, 14, {255, 220, 200, 255});
+      DrawRectangle(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {0, 0, 0, 140});
+      DrawRectangleLines(10, SCREEN_HEIGHT - 50, SCREEN_WIDTH - 20, 40, {255, 255, 255, 60});
+      DrawText("Result | SPACE: next hole | C/V: toggle silhouette", 20, SCREEN_HEIGHT - 40, 16, {255, 220, 200, 255});
     }
   }
   

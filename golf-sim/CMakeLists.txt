@@ -40,6 +40,8 @@ target_include_directories(domain PUBLIC include)
 add_library(application STATIC
   src/application/ShotParameterService.cpp
   src/application/UseCases.cpp
+  src/application/ScreenFlow.cpp
+  src/application/CoordinateConverter.cpp
 )
 target_include_directories(application PUBLIC include)
 target_link_libraries(application PUBLIC domain)

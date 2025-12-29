@@ -4,6 +4,7 @@
 #include "domain/PhysicsEngine.hpp"
 #include "application/ShotParameterService.hpp"
 #include "application/UseCases.hpp"
+#include "application/ScreenFlow.hpp"
 #include "infrastructure/MockSensorProvider.hpp"
 #include <memory>
 
@@ -49,4 +50,5 @@ private:
   // UI state (presentation concern)
   int hole_number_ = 1;
   bool window_open_ = true;
+  application::ScreenFlow screen_flow_{};
 };

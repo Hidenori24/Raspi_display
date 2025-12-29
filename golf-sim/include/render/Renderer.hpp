@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <raylib.h>
+#include "render/ViewMode.hpp"
 
 struct BallPosition {
   float x, y;  // 2D position on green
@@ -29,9 +30,11 @@ public:
   ~Renderer();
 
   void init(int width, int height);
+  void setViewMode(ViewMode mode);  // Switch between views
   void drawGreen(const GreenData& green);
   void drawTrajectory(const GreenData& green);  // Draw ball flight path
   void drawBalls(const std::vector<BallPosition>& positions);
+  void drawAimDirection(const BallPosition& tee_pos, float aim_angle_deg, float power);  // Draw aim arrow
   void drawCurrentBall(const GreenData& green);  // Draw in-flight ball
   void drawHUD(const GreenData& green);
   void drawSetupScreen(float pin_distance, int hole_number, int par, 
@@ -40,11 +43,16 @@ public:
                                 const char* club_name, float wind_speed, float wind_angle,
                                 const GreenData& green);
   void drawIntroScreen(int hole_number, int par, float pin_distance);
+  // Overhead course overview for intro
+  void drawIntroCourseOverview(int hole_number, int par, float pin_distance);
+  // Draw cinematic scene without BeginDrawing/EndDrawing (for overlay use)
+  void drawIntroSceneLayer(int hole_number, int par, float pin_distance, bool show_texts);
 
 private:
   int screen_width_ = 1280;
   int screen_height_ = 720;
   float scale_factor_ = 1.0f;  // pixels per meter
+  ViewMode view_mode_ = ViewMode::PlayerView;  // Current view mode
   
   // Perspective mapping helpers
   struct PerspectiveParams {
