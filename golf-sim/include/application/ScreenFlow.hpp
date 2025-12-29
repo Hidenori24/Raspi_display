@@ -28,7 +28,7 @@ public:
   // Called when advancing to next hole (Result -> Intro)
   void onNextHole();
 
-  // Select view mode for renderer (currently only overhead for stability)
+  // Select view mode for renderer (PlayerView when cinematic, OverheadView otherwise)
   ViewMode selectView(domain::GameState state) const;
 
   // Accessors for App integration/UI
