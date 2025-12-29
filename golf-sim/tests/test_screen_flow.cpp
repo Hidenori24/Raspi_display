@@ -61,20 +61,30 @@ TEST(view_selection_respects_cinematic) {
   assert(flow.cinematicEnabled());
   assert(flow.selectView(domain::GameState::Armed) == ViewMode::PlayerView);
   
-  // After shot, cinematic is forced off -> overhead
-  flow.onShot();
+  // User can toggle cinematic off in Armed state
+  flow.toggleCinematic();
   assert(!flow.cinematicEnabled());
   assert(flow.selectView(domain::GameState::Armed) == ViewMode::OverheadView);
   
-  // During InFlight, always overhead
-  flow.onGameStateChange(domain::GameState::InFlight);
-  assert(flow.selectView(domain::GameState::InFlight) == ViewMode::OverheadView);
-  
-  // Toggle cinematic back on (after shot completes)
-  flow.onGameStateChange(domain::GameState::Result);
+  // Toggle back on
   flow.toggleCinematic();
   assert(flow.cinematicEnabled());
-  assert(flow.selectView(domain::GameState::Result) == ViewMode::PlayerView);
+  assert(flow.selectView(domain::GameState::Armed) == ViewMode::PlayerView);
+  
+  // After shot, cinematic is forced off -> overhead
+  flow.onShot();
+  assert(!flow.cinematicEnabled());
+  assert(flow.selectView(domain::GameState::InFlight) == ViewMode::OverheadView);
+  
+  // During InFlight, always overhead (even if flag is forced, which shouldn't happen)
+  flow.onGameStateChange(domain::GameState::InFlight);
+  assert(!flow.cinematicEnabled());
+  assert(flow.selectView(domain::GameState::InFlight) == ViewMode::OverheadView);
+  
+  // During Result, always overhead
+  flow.onGameStateChange(domain::GameState::Result);
+  assert(!flow.cinematicEnabled());
+  assert(flow.selectView(domain::GameState::Result) == ViewMode::OverheadView);
 }
 
 int main() {
