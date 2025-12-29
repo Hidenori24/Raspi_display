@@ -51,21 +51,53 @@ TEST(result_resets_to_intro) {
   assert(!flow.cinematicEnabled());
 }
 
-TEST(view_selection_is_overhead) {
+// Test: selectView currently returns OverheadView for stability
+// This is intentional - the cinematic flag controls UI state, but
+// selectView always returns OverheadView until PlayerView is stable.
+TEST(view_selection_always_overhead_for_stability) {
   application::ScreenFlow flow;
   flow.advanceFromIntro();
-  flow.onGameStateChange(domain::GameState::Armed);
+  
+  // Even with cinematic enabled (golfer silhouette UI state)
+  assert(flow.cinematicEnabled());
   assert(flow.selectView(domain::GameState::Armed) == ViewMode::OverheadView);
+  
+  // And with cinematic disabled
+  flow.onShot();
+  assert(!flow.cinematicEnabled());
   flow.onGameStateChange(domain::GameState::InFlight);
   assert(flow.selectView(domain::GameState::InFlight) == ViewMode::OverheadView);
+  
+  // This behavior is temporary - see test below for expected future behavior
 }
+
+// FUTURE: When PlayerView is enabled, selectView should respect cinematic flag
+// TEST(view_selection_respects_cinematic_flag) {
+//   application::ScreenFlow flow;
+//   flow.advanceFromIntro();
+//   
+//   // When cinematic is enabled, should use PlayerView for Armed state
+//   assert(flow.cinematicEnabled());
+//   assert(flow.selectView(domain::GameState::Armed) == ViewMode::PlayerView);
+//   
+//   // After shot, cinematic is disabled, should use OverheadView
+//   flow.onShot();
+//   assert(!flow.cinematicEnabled());
+//   assert(flow.selectView(domain::GameState::Armed) == ViewMode::OverheadView);
+//   
+//   // InFlight and Result always use OverheadView regardless of cinematic
+//   flow.toggleCinematic();  // turn cinematic back on
+//   assert(flow.cinematicEnabled());
+//   flow.onGameStateChange(domain::GameState::InFlight);
+//   assert(flow.selectView(domain::GameState::InFlight) == ViewMode::OverheadView);
+// }
 
 int main() {
   std::cout << "=== Screen Flow Tests ===" << std::endl;
   RUN_TEST(transition_intro_to_playing_enters_cinematic);
   RUN_TEST(toggle_and_shot_forces_overhead);
   RUN_TEST(result_resets_to_intro);
-  RUN_TEST(view_selection_is_overhead);
+  RUN_TEST(view_selection_always_overhead_for_stability);
   std::cout << "All screen flow tests passed!" << std::endl;
   return 0;
 }
