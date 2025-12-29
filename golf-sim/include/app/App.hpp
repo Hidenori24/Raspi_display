@@ -11,11 +11,6 @@
 // Forward declaration to avoid raylib include here
 class Renderer;
 
-enum class ScreenState {
-  Intro,    // Cinematic golfer silhouette
-  Playing   // Armed/InFlight/Result with view switching
-};
-
 // Composition Root: assembles all layers
 class App {
 public:
