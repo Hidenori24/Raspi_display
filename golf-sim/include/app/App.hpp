@@ -11,11 +11,6 @@
 // Forward declaration to avoid raylib include here
 class Renderer;
 
-enum class ScreenState {
-  Intro,    // Cinematic golfer silhouette
-  Playing   // Armed/InFlight/Result with view switching
-};
-
 // Composition Root: assembles all layers
 class App {
 public:
@@ -39,7 +34,6 @@ private:
   domain::PhysicsConfig physics_config_;
   domain::GameStateMachine state_machine_;
   domain::PhysicsEngine physics_;
-  domain::GameState last_state_ = domain::GameState::Idle;
   
   // Application layer
   application::ShotParameterService shot_service_;
