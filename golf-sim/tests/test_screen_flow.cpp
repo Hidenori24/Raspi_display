@@ -76,12 +76,12 @@ TEST(view_selection_respects_cinematic) {
   assert(!flow.cinematicEnabled());
   assert(flow.selectView(domain::GameState::InFlight) == ViewMode::OverheadView);
   
-  // During InFlight, always overhead (even if flag is forced, which shouldn't happen)
+  // State change to InFlight keeps cinematic off -> overhead
   flow.onGameStateChange(domain::GameState::InFlight);
   assert(!flow.cinematicEnabled());
   assert(flow.selectView(domain::GameState::InFlight) == ViewMode::OverheadView);
   
-  // During Result, always overhead
+  // State change to Result also keeps cinematic off -> overhead
   flow.onGameStateChange(domain::GameState::Result);
   assert(!flow.cinematicEnabled());
   assert(flow.selectView(domain::GameState::Result) == ViewMode::OverheadView);
