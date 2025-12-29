@@ -1,2 +1,2 @@
-/usr/bin/ar qc libapplication.a CMakeFiles/application.dir/src/application/ShotParameterService.cpp.o CMakeFiles/application.dir/src/application/UseCases.cpp.o
+/usr/bin/ar qc libapplication.a CMakeFiles/application.dir/src/application/ShotParameterService.cpp.o CMakeFiles/application.dir/src/application/UseCases.cpp.o CMakeFiles/application.dir/src/application/ScreenFlow.cpp.o CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.o
 /usr/bin/ranlib libapplication.a

@@ -1,5 +1,6 @@
 #include "app/App.hpp"
 #include "render/Renderer.hpp"
+#include "application/CoordinateConverter.hpp"
 #include <raylib.h>
 
 App::App()
@@ -154,8 +155,8 @@ void App::render() {
   
   if (state == domain::GameState::Armed) {
     // Setup screen
-    green.current_ball_pos = {0.0f, -17.5f};
-    green.ball_positions = {{0.0f, -17.5f}};
+    green.current_ball_pos = {0.0f, application::CoordinateConverter::TEE_RENDER_OFFSET_Y};
+    green.ball_positions = {{0.0f, application::CoordinateConverter::TEE_RENDER_OFFSET_Y}};
     
     const application::ClubData& club = shot_service_.getClubData(current_params_.club_index);
 
@@ -166,7 +167,7 @@ void App::render() {
       renderer_->drawGreen(green);
       renderer_->drawBalls(green.ball_positions);
       // Draw aim direction arrow
-      BallPosition tee = {0.0f, -17.5f};
+      BallPosition tee = {0.0f, application::CoordinateConverter::TEE_RENDER_OFFSET_Y};
       renderer_->drawAimDirection(tee, current_params_.aim_angle_deg, current_params_.power);
     }
     
@@ -184,24 +185,22 @@ void App::render() {
     // Flight or result screen (overhead view)
     const domain::Trajectory& traj = physics_.getTrajectory();
     
-    // Convert trajectory to render format
-    // Physics uses (0,0,0) as tee position, but render uses (0, -17.5) as tee
+    // Convert trajectory from domain (physics) coordinates to render coordinates
+    auto render_points = application::CoordinateConverter::toRenderTrajectory(traj);
     green.trajectory.clear();
-    for (const auto& point : traj.getPoints()) {
-      green.trajectory.push_back({
-        static_cast<float>(point.pos.x),
-        static_cast<float>(point.pos.y - 17.5),  // Offset to match tee position in render coords
-        static_cast<float>(point.pos.z)
-      });
+    for (const auto& point : render_points) {
+      green.trajectory.push_back({point.x, point.y, point.height});
     }
     
     if (!traj.empty()) {
       const domain::BallState& last = traj.getLastPoint();
-      green.current_ball_pos.x = static_cast<float>(last.pos.x);
-      green.current_ball_pos.y = static_cast<float>(last.pos.y - 17.5);  // Offset to match render coords
+      auto render_pos = application::CoordinateConverter::toRenderCoordinates(last.pos);
+      green.current_ball_pos.x = render_pos.x;
+      green.current_ball_pos.y = render_pos.y;
     }
     
-    green.ball_positions = {{0.0f, -17.5f}};  // Tee position
+    // Tee position in render coordinates
+    green.ball_positions = {{0.0f, application::CoordinateConverter::TEE_RENDER_OFFSET_Y}};
     
     renderer_->drawGreen(green);
     renderer_->drawBalls(green.ball_positions);  // Draw tee and player first (behind trajectory)

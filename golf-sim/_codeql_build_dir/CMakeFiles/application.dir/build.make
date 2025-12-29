@@ -103,19 +103,51 @@ CMakeFiles/application.dir/src/application/UseCases.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/application.dir/src/application/UseCases.cpp.s"
 	/home/runner/work/Raspi_display/.codeql-scratch/dbs/cpp/working/autobuild/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/runner/work/Raspi_display/Raspi_display/golf-sim/src/application/UseCases.cpp -o CMakeFiles/application.dir/src/application/UseCases.cpp.s
 
+CMakeFiles/application.dir/src/application/ScreenFlow.cpp.o: CMakeFiles/application.dir/flags.make
+CMakeFiles/application.dir/src/application/ScreenFlow.cpp.o: /home/runner/work/Raspi_display/Raspi_display/golf-sim/src/application/ScreenFlow.cpp
+CMakeFiles/application.dir/src/application/ScreenFlow.cpp.o: CMakeFiles/application.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/runner/work/Raspi_display/Raspi_display/golf-sim/_codeql_build_dir/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/application.dir/src/application/ScreenFlow.cpp.o"
+	/home/runner/work/Raspi_display/.codeql-scratch/dbs/cpp/working/autobuild/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/application.dir/src/application/ScreenFlow.cpp.o -MF CMakeFiles/application.dir/src/application/ScreenFlow.cpp.o.d -o CMakeFiles/application.dir/src/application/ScreenFlow.cpp.o -c /home/runner/work/Raspi_display/Raspi_display/golf-sim/src/application/ScreenFlow.cpp
+
+CMakeFiles/application.dir/src/application/ScreenFlow.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/application.dir/src/application/ScreenFlow.cpp.i"
+	/home/runner/work/Raspi_display/.codeql-scratch/dbs/cpp/working/autobuild/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/runner/work/Raspi_display/Raspi_display/golf-sim/src/application/ScreenFlow.cpp > CMakeFiles/application.dir/src/application/ScreenFlow.cpp.i
+
+CMakeFiles/application.dir/src/application/ScreenFlow.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/application.dir/src/application/ScreenFlow.cpp.s"
+	/home/runner/work/Raspi_display/.codeql-scratch/dbs/cpp/working/autobuild/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/runner/work/Raspi_display/Raspi_display/golf-sim/src/application/ScreenFlow.cpp -o CMakeFiles/application.dir/src/application/ScreenFlow.cpp.s
+
+CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.o: CMakeFiles/application.dir/flags.make
+CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.o: /home/runner/work/Raspi_display/Raspi_display/golf-sim/src/application/CoordinateConverter.cpp
+CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.o: CMakeFiles/application.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/runner/work/Raspi_display/Raspi_display/golf-sim/_codeql_build_dir/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.o"
+	/home/runner/work/Raspi_display/.codeql-scratch/dbs/cpp/working/autobuild/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.o -MF CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.o.d -o CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.o -c /home/runner/work/Raspi_display/Raspi_display/golf-sim/src/application/CoordinateConverter.cpp
+
+CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.i"
+	/home/runner/work/Raspi_display/.codeql-scratch/dbs/cpp/working/autobuild/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/runner/work/Raspi_display/Raspi_display/golf-sim/src/application/CoordinateConverter.cpp > CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.i
+
+CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.s"
+	/home/runner/work/Raspi_display/.codeql-scratch/dbs/cpp/working/autobuild/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/runner/work/Raspi_display/Raspi_display/golf-sim/src/application/CoordinateConverter.cpp -o CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.s
+
 # Object files for target application
 application_OBJECTS = \
 "CMakeFiles/application.dir/src/application/ShotParameterService.cpp.o" \
-"CMakeFiles/application.dir/src/application/UseCases.cpp.o"
+"CMakeFiles/application.dir/src/application/UseCases.cpp.o" \
+"CMakeFiles/application.dir/src/application/ScreenFlow.cpp.o" \
+"CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.o"
 
 # External object files for target application
 application_EXTERNAL_OBJECTS =
 
 libapplication.a: CMakeFiles/application.dir/src/application/ShotParameterService.cpp.o
 libapplication.a: CMakeFiles/application.dir/src/application/UseCases.cpp.o
+libapplication.a: CMakeFiles/application.dir/src/application/ScreenFlow.cpp.o
+libapplication.a: CMakeFiles/application.dir/src/application/CoordinateConverter.cpp.o
 libapplication.a: CMakeFiles/application.dir/build.make
 libapplication.a: CMakeFiles/application.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/runner/work/Raspi_display/Raspi_display/golf-sim/_codeql_build_dir/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library libapplication.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/runner/work/Raspi_display/Raspi_display/golf-sim/_codeql_build_dir/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library libapplication.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/application.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/application.dir/link.txt --verbose=$(VERBOSE)
 
