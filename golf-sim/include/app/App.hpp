@@ -34,7 +34,6 @@ private:
   domain::PhysicsConfig physics_config_;
   domain::GameStateMachine state_machine_;
   domain::PhysicsEngine physics_;
-  domain::GameState last_state_ = domain::GameState::Idle;
   
   // Application layer
   application::ShotParameterService shot_service_;
