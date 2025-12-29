@@ -4,6 +4,7 @@
 #include "domain/PhysicsEngine.hpp"
 #include "application/ShotParameterService.hpp"
 #include "application/UseCases.hpp"
+#include "application/ScreenFlow.hpp"
 #include "infrastructure/MockSensorProvider.hpp"
 #include <memory>
 
@@ -55,7 +56,5 @@ private:
   // UI state (presentation concern)
   int hole_number_ = 1;
   bool window_open_ = true;
-  bool manual_view_override_ = false;  // User manually switched view
-  ScreenState screen_state_ = ScreenState::Intro;  // Start with intro screen
-  bool cinematic_view_ = false;  // Toggle cinematic (golfer silhouette) view during play
+  application::ScreenFlow screen_flow_{};
 };

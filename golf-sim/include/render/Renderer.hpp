@@ -47,6 +47,10 @@ public:
                                 const char* club_name, float wind_speed, float wind_angle,
                                 const GreenData& green);
   void drawIntroScreen(int hole_number, int par, float pin_distance);
+  // Overhead course overview for intro
+  void drawIntroCourseOverview(int hole_number, int par, float pin_distance);
+  // Draw cinematic scene without BeginDrawing/EndDrawing (for overlay use)
+  void drawIntroSceneLayer(int hole_number, int par, float pin_distance, bool show_texts);
 
 private:
   int screen_width_ = 1280;

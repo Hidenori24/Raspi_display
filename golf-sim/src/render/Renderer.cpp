@@ -517,6 +517,71 @@ void Renderer::drawSetupScreenWithGreen(float pin_distance, int hole_number, int
 
 void Renderer::drawIntroScreen(int hole_number, int par, float pin_distance) {
   BeginDrawing();
+  drawIntroCourseOverview(hole_number, par, pin_distance);
+  // Overlay instructions
+  std::stringstream hole_ss; hole_ss << "Hole " << hole_number << "  PAR " << par;
+  std::stringstream dist_ss; dist_ss << (int)pin_distance << "y";
+
+  DrawRectangle(20, 20, 320, 110, {0, 0, 0, 140});
+  DrawRectangleLines(20, 20, 320, 110, {255, 255, 255, 60});
+  DrawText(hole_ss.str().c_str(), 32, 32, 24, {255, 235, 140, 255});
+  DrawText(dist_ss.str().c_str(), 32, 64, 20, {230, 230, 230, 255});
+  DrawText("SPACE / ENTER: go to silhouette setup", 32, 94, 16, {200, 220, 255, 255});
+  EndDrawing();
+}
+
+void Renderer::drawIntroCourseOverview(int hole_number, int par, float pin_distance) {
+  ClearBackground({120, 180, 215, 255});
+
+  // Stylized overhead course shape
+  Rectangle course = {screen_width_ * 0.2f, screen_height_ * 0.2f, screen_width_ * 0.6f, screen_height_ * 0.55f};
+  DrawRectangleRounded(course, 0.12f, 16, {70, 160, 90, 255});
+  DrawRectangleRoundedLines(course, 0.12f, 16, {40, 110, 50, 200});
+
+  // Fairway ribbon
+  Rectangle fairway = {course.x + course.width * 0.15f, course.y + course.height * 0.05f, course.width * 0.7f, course.height * 0.9f};
+  DrawRectangleRounded(fairway, 0.2f, 20, {90, 190, 110, 255});
+
+  // Water and bunker accents
+  DrawCircle((int)(course.x + course.width * 0.3f), (int)(course.y + course.height * 0.35f), 26, {70, 150, 190, 200});
+  DrawCircle((int)(course.x + course.width * 0.65f), (int)(course.y + course.height * 0.7f), 22, {240, 220, 170, 230});
+
+  // Tee and hole markers
+  Vector2 tee = {course.x + course.width * 0.2f, course.y + course.height * 0.85f};
+  Vector2 hole = {course.x + course.width * 0.8f, course.y + course.height * 0.12f};
+  DrawCircle((int)tee.x, (int)tee.y, 10, {255, 255, 255, 255});
+  DrawCircle((int)tee.x, (int)tee.y, 14, {255, 255, 255, 80});
+  DrawCircle((int)hole.x, (int)hole.y, 8, {255, 80, 80, 255});
+  DrawTriangle({hole.x, hole.y - 18}, {hole.x + 16, hole.y - 12}, {hole.x, hole.y - 6}, {230, 40, 40, 220});
+
+  // Distance line and label
+  DrawLineEx(tee, hole, 4, {255, 240, 200, 200});
+  Vector2 mid = {(tee.x + hole.x) / 2.0f, (tee.y + hole.y) / 2.0f};
+  std::stringstream dist_ss; dist_ss << (int)pin_distance << "y";
+  DrawRectangle(mid.x - 34, mid.y - 14, 68, 24, {0, 0, 0, 180});
+  DrawRectangleLines(mid.x - 34, mid.y - 14, 68, 24, {255, 255, 255, 80});
+  DrawText(dist_ss.str().c_str(), (int)mid.x - 22, (int)mid.y - 10, 18, {255, 235, 140, 255});
+
+  // Hole info badge
+  std::stringstream hole_ss; hole_ss << "Hole " << hole_number << " | PAR " << par;
+  DrawRectangle(course.x, course.y - 50, 220, 36, {0, 0, 0, 160});
+  DrawRectangleLines(course.x, course.y - 50, 220, 36, {255, 255, 255, 60});
+  DrawText(hole_ss.str().c_str(), (int)course.x + 12, (int)course.y - 44, 20, {255, 235, 140, 255});
+
+  // Wind badge placeholder
+  DrawRectangle(course.x + course.width - 140, course.y - 50, 120, 36, {0, 0, 0, 140});
+  DrawRectangleLines(course.x + course.width - 140, course.y - 50, 120, 36, {255, 255, 255, 60});
+  DrawText("WIND", (int)(course.x + course.width - 126), (int)(course.y - 44), 18, {200, 220, 255, 255});
+  DrawLineEx({course.x + course.width - 70, course.y - 32}, {course.x + course.width - 24, course.y - 32}, 3, {80, 140, 255, 200});
+  DrawTriangle({course.x + course.width - 24, course.y - 32}, {course.x + course.width - 34, course.y - 37}, {course.x + course.width - 34, course.y - 27}, {80, 140, 255, 200});
+
+  // Footer instructions
+  DrawRectangle(20, screen_height_ - 60, screen_width_ - 40, 40, {0, 0, 0, 140});
+  DrawRectangleLines(20, screen_height_ - 60, screen_width_ - 40, 40, {255, 255, 255, 60});
+  DrawText("SPACE / ENTER: switch to silhouette setup | C/V: toggle view during play", 32, screen_height_ - 50, 16, {255, 235, 200, 255});
+}
+
+void Renderer::drawIntroSceneLayer(int hole_number, int par, float pin_distance, bool show_texts) {
   ClearBackground({95, 190, 245, 255});
 
   // Sky gradient & mountains
@@ -595,24 +660,24 @@ void Renderer::drawIntroScreen(int hole_number, int par, float pin_distance) {
   DrawLineEx({90, wind_y + 10}, {150, wind_y + 10}, 3, {80, 140, 255, 200});
   DrawTriangle({150, wind_y + 10}, {140, wind_y + 5}, {140, wind_y + 15}, {80, 140, 255, 200});
 
-  // HUD text
-  std::stringstream hole_ss; hole_ss << "Hole " << hole_number << "  PAR " << par;
-  std::stringstream dist_ss; dist_ss << (int)pin_distance << "y";
-  DrawText(hole_ss.str().c_str(), 20, 52, 26, {255, 235, 140, 255});
-  DrawText(dist_ss.str().c_str(), 20, 82, 22, {230, 230, 230, 255});
+  if (show_texts) {
+    // HUD text
+    std::stringstream hole_ss; hole_ss << "Hole " << hole_number << "  PAR " << par;
+    std::stringstream dist_ss; dist_ss << (int)pin_distance << "y";
+    DrawText(hole_ss.str().c_str(), 20, 52, 26, {255, 235, 140, 255});
+    DrawText(dist_ss.str().c_str(), 20, 82, 22, {230, 230, 230, 255});
 
-  DrawText("Take your stance...", 20, 118, 20, {230, 230, 230, 255});
-  DrawText("SPACE / ENTER: start", 20, 146, 18, {180, 240, 180, 255});
-  DrawText("C: cinematic | V: overhead/player (in play)", 20, 172, 16, {200, 220, 255, 255});
+    DrawText("Take your stance...", 20, 118, 20, {230, 230, 230, 255});
+    DrawText("SPACE / ENTER: start", 20, 146, 18, {180, 240, 180, 255});
+    DrawText("C: cinematic | V: overhead/player (in play)", 20, 172, 16, {200, 220, 255, 255});
 
-  // Bottom power bar placeholder
-  float bar_x = screen_width_ * 0.20f;
-  float bar_y = screen_height_ - 60;
-  float bar_w = screen_width_ * 0.60f;
-  DrawRectangle(bar_x, bar_y, bar_w, 18, {30, 30, 30, 200});
-  DrawRectangleLines(bar_x, bar_y, bar_w, 18, {200, 200, 200, 200});
-  DrawRectangle(bar_x, bar_y, bar_w * 0.35f, 18, {255, 200, 60, 220});
-  DrawText("Power", bar_x - 70, bar_y - 2, 16, {255, 235, 140, 255});
-
-  EndDrawing();
+    // Bottom power bar placeholder
+    float bar_x = screen_width_ * 0.20f;
+    float bar_y = screen_height_ - 60;
+    float bar_w = screen_width_ * 0.60f;
+    DrawRectangle(bar_x, bar_y, bar_w, 18, {30, 30, 30, 200});
+    DrawRectangleLines(bar_x, bar_y, bar_w, 18, {200, 200, 200, 200});
+    DrawRectangle(bar_x, bar_y, bar_w * 0.35f, 18, {255, 200, 60, 220});
+    DrawText("Power", bar_x - 70, bar_y - 2, 16, {255, 235, 140, 255});
+  }
 }
