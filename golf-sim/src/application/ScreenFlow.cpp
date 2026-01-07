@@ -39,9 +39,8 @@ void ScreenFlow::onNextHole() {
 }
 
 ViewMode ScreenFlow::selectView(domain::GameState /*state*/) const {
-  // Spec: only two views: cinematic (golfer silhouette) or overhead
-  // Return PlayerView when cinematic is enabled, OverheadView otherwise
-  return cinematic_view_ ? ViewMode::PlayerView : ViewMode::OverheadView;
+  // Stability-first: always use overhead camera for rendering
+  return ViewMode::OverheadView;
 }
 
 void ScreenFlow::resetToIntro() {
